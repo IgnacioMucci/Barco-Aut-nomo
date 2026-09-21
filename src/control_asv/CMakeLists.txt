@@ -1,45 +1,40 @@
+# Establece la versión mínima requerida de CMake para compilar el proyecto
 cmake_minimum_required(VERSION 3.8)
 
+# Define el nombre del paquete ROS 2
 project(control_asv)
 
-
-
+# Verifica si el compilador es GNU C++ o Clang para añadir opciones de compilación estrictas
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-
+  # Activa las advertencias (warnings) para mantener un código limpio y seguro
   add_compile_options(-Wall -Wextra -Wpedantic)
-
 endif()
 
+# BÚSQUEDA DE DEPENDENCIAS
+find_package(ament_cmake REQUIRED)      # ament_cmake es el sistema de construcción (build system) estándar de ROS 2
 
+find_package(rclcpp REQUIRED)           # Librerías core de ROS 2 (C++)
 
-# find dependencies
+# Paquetes de tipos de mensajes estándar requeridos por los nodos
+find_package(std_msgs REQUIRED)          # Para mensajes básicos (ej. arreglos de enteros para PWM)
+find_package(geometry_msgs REQUIRED)     # Necesario para nodo_cmd_vel (Twist / velocidades)
+find_package(geographic_msgs REQUIRED)   # Para nodo_gps_waypoint (Latitud/Longitud)
+find_package(sensor_msgs REQUIRED)       # Para nodo_ap_dds_joy (sensor_msgs::msg::Joy)
+find_package(mavros_msgs REQUIRED)       # para nodo_mavros_override (mavros_msgs::msg::OverrideRCIn)
+find_package(ardupilot_msgs REQUIRED)    # para mensajes de ardupilot como estado, posicion, etc.
 
-find_package(ament_cmake REQUIRED)
-
-find_package(rclcpp REQUIRED)
-
-find_package(std_msgs REQUIRED)
-
-find_package(sensor_msgs REQUIRED)   # para nodo_ap_dds_joy (sensor_msgs::msg::Joy)
-
-find_package(mavros_msgs REQUIRED)   #para nodo_mavros_override (mavros_msgs::msg::OverrideRCIn)
-
-
-
+# CONFIGURACIÓN DE TESTING 
 if(BUILD_TESTING)
 
   find_package(ament_lint_auto REQUIRED)
 
   # the following line skips the linter which checks for copyrights
-
   # comment the line when a copyright and license is added to all source files
 
   set(ament_cmake_copyright_FOUND TRUE)
 
   # the following line skips cpplint (only works in a git repo)
-
   # comment the line when this package is in a git repo and when
-
   # a copyright and license is added to all source files
 
   set(ament_cmake_cpplint_FOUND TRUE)
@@ -48,40 +43,47 @@ if(BUILD_TESTING)
 
 endif()
 
+# DECLARACIÓN DE EJECUTABLES
 
-#Para el nodo principal (no tiene nada por ahora)
- add_executable(nodo_principal src/nodo_principal.cpp)
-
+# Nodo Principal - Crea el ejecutable llamando al archivo fuente
+add_executable(nodo_principal src/nodo_principal.cpp)
+# Vincula el ejecutable con las librerías que utiliza
 ament_target_dependencies(nodo_principal rclcpp std_msgs)
 
+# Nodo MAVROS (PWM crudo)
+add_executable(nodo_mavros src/NodoMavros.cpp)
+ament_target_dependencies(nodo_mavros rclcpp mavros_msgs)
 
+# Nodo AP DDS (traduce PWM -> eje normalizado antes de publicar)
+add_executable(nodo_ap_dds_joy src/nodo_ap_dds_joy.cpp src/pwm_to_axis.cpp)
+ament_target_dependencies(nodo_ap_dds_joy rclcpp sensor_msgs)
 
-#nodo MAVROS (PWM crudo)
+# Nodo de Velocidades (cmd_vel) 
+add_executable(nodo_cmd_vel src/nodo_cmd_vel.cpp)
+ament_target_dependencies(nodo_cmd_vel rclcpp geometry_msgs ardupilot_msgs)
 
-#add_executable(nodo_mavros_override src/nodo_mavros_override.cpp)
+# Nodo de Waypoints GPS 
+add_executable(nodo_gps_waypoint src/nodo_gps_waypoint.cpp)
+ament_target_dependencies(nodo_gps_waypoint rclcpp geographic_msgs ardupilot_msgs)
 
-#ament_target_dependencies(nodo_mavros_override rclcpp mavros_msgs)
-
-
-
-#nodo AP_DDS (traduce PWM -> eje normalizado antes de publicar)
-
-#add_executable(nodo_ap_dds_joy src/nodo_ap_dds_joy.cpp)
-
-#ament_target_dependencies(nodo_ap_dds_joy rclcpp sensor_msgs)
-
-
-
+# REGLAS DE INSTALACIÓN
+# Le dice a CMake dónde colocar los binarios compilados para que "ros2 run" los encuentre
 install(TARGETS
-
- # nodo_principal
-
+  nodo_principal
+  nodo_mavros
+  nodo_ap_dds_joy
+  nodo_cmd_vel
+  nodo_gps_waypoint
   #nodo_mavros_override
 
   #nodo_ap_dds_joy
-
   DESTINATION lib/${PROJECT_NAME}
-
 )
 
+# INSTALACIÓN DEL ARCHIVO LAUNCH
+install(DIRECTORY launch
+  DESTINATION share/${PROJECT_NAME}
+)
+
+# Exporta la configuración del paquete para ament
 ament_package()
