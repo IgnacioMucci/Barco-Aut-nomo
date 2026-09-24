@@ -48,7 +48,7 @@ endif()
 # Nodo Principal - Crea el ejecutable llamando al archivo fuente
 add_executable(nodo_principal src/nodo_principal.cpp)
 # Vincula el ejecutable con las librerías que utiliza
-ament_target_dependencies(nodo_principal rclcpp std_msgs)
+ament_target_dependencies(nodo_principal rclcpp mavros_msgs)
 
 # Nodo MAVROS (PWM crudo)
 add_executable(nodo_mavros src/NodoMavros.cpp)

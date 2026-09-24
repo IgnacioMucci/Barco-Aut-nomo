@@ -1,4 +1,3 @@
-
 // Nodo que manda PWM crudo (en microsegundos) a la Pixhawk usando MAVROS.
 // MAVROS traduce esto internamente al mensaje MAVLink RC_CHANNELS_OVERRIDE,
 // que es el mismo mecanismo que dispara el modo PassThru en el firmware.
