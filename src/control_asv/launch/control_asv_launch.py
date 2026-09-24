@@ -10,7 +10,8 @@ def generate_launch_description():
     # Definimos la ruta del puerto de la placa (fcu_url) por USB/Serial con su baudrate,
     # permitiendo cambiarlo fácilmente sin modificar código duro en los ejecutables.
     fcu_url = LaunchConfiguration('fcu_url', default='/dev/ttyACM0:57600')
-    gcs_url = LaunchConfiguration('gcs_url', default='')
+    # IP real de mi compu, posiblemente se tenga que cambiar
+    gcs_url = LaunchConfiguration('gcs_url', default='udp://@163.10.77.210:14550')
     tgt_system = LaunchConfiguration('tgt_system', default='1')
     tgt_component = LaunchConfiguration('tgt_component', default='1')
 

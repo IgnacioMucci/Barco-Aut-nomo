@@ -66,6 +66,10 @@ ament_target_dependencies(nodo_cmd_vel rclcpp geometry_msgs ardupilot_msgs)
 add_executable(nodo_gps_waypoint src/nodo_gps_waypoint.cpp)
 ament_target_dependencies(nodo_gps_waypoint rclcpp geographic_msgs ardupilot_msgs)
 
+# Nodo de Telemetría
+add_executable(nodo_telemetria src/nodo_telemetria.cpp)
+ament_target_dependencies(nodo_telemetria rclcpp mavros_msgs sensor_msgs geometry_msgs)
+
 # REGLAS DE INSTALACIÓN
 # Le dice a CMake dónde colocar los binarios compilados para que "ros2 run" los encuentre
 install(TARGETS
@@ -74,9 +78,9 @@ install(TARGETS
   nodo_ap_dds_joy
   nodo_cmd_vel
   nodo_gps_waypoint
-  #nodo_mavros_override
-
-  #nodo_ap_dds_joy
+  nodo_mavros_override
+  nodo_telemetria
+  nodo_ap_dds_joy
   DESTINATION lib/${PROJECT_NAME}
 )
 
