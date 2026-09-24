@@ -10,8 +10,13 @@ def generate_launch_description():
     # Definimos la ruta del puerto de la placa (fcu_url) por USB/Serial con su baudrate,
     # permitiendo cambiarlo fácilmente sin modificar código duro en los ejecutables.
     fcu_url = LaunchConfiguration('fcu_url', default='/dev/ttyACM0:57600')
-    # IP real de mi compu, posiblemente se tenga que cambiar
-    gcs_url = LaunchConfiguration('gcs_url', default='udp://@163.10.77.210:14550')
+
+    # Redirigimos la telemetría hacia Mission Planner en Windows
+    # 'host.docker.internal' permite a Docker comunicarse con la IP de mi compu Windows
+    # 14550 es el puerto UDP estándar que escucha Mission Planner
+    #gcs_url = LaunchConfiguration('gcs_url', default='udp://@host.docker.internal:14550')
+    gcs_url = LaunchConfiguration('gcs_url', default='') #por ahora dejamos este para que no rompa nada 
+
     tgt_system = LaunchConfiguration('tgt_system', default='1')
     tgt_component = LaunchConfiguration('tgt_component', default='1')
 
@@ -28,6 +33,14 @@ def generate_launch_description():
                 'target_system_id': tgt_system,
                 'target_component_id': tgt_component
             }],
+            output='screen'
+        ),
+
+        # Nodo de telemetría para recuperar vars de estado de la placa
+        Node(
+            package='control_asv',
+            executable='nodo_telemetria',
+            name='telemetria_node',
             output='screen'
         ),
 
@@ -54,7 +67,15 @@ def generate_launch_description():
             executable='nodo_gps_waypoint',
             name='gps_node',
             output='screen'
-        )
+        ),
+
+        # nodo traductor de paquetes de mavlink enviados por mission planner a intrucciones de navegación
+        Node(
+            package='control_asv',
+            executable='nodo_traductor_mission_planner',
+            name='traductor_mission_planner_node',
+            output='screen'
+        ),
         
         # acá seguiremos agregando los nodos q vayamos haciendo y queramos q arranquen al toque
     ])
